@@ -7,6 +7,7 @@ import com.swachhbot.backend.domain.ProblemArea;
 import com.swachhbot.backend.domain.Room;
 import com.swachhbot.backend.domain.learning.LearnedInsightEntity;
 import com.swachhbot.backend.domain.plan.CleaningPlan;
+import com.swachhbot.backend.domain.plan.CleaningPlanEntity;
 import com.swachhbot.backend.learning.LearningService;
 import com.swachhbot.backend.repository.CleaningPlanRepository;
 import com.swachhbot.backend.repository.ProblemAreaRepository;

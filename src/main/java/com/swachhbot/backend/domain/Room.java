@@ -3,8 +3,8 @@ package com.swachhbot.backend.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /** A named region inside a house (Living Room, Kitchen, ...). */
@@ -42,5 +42,5 @@ public class Room {
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<Furniture> furniture = new ArrayList<>();
+    private Set<Furniture> furniture = new HashSet<>();
 }

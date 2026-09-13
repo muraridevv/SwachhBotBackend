@@ -2,11 +2,7 @@
 
 Central robot / AI server for the **SwachhBot** floor-cleaning robot. It persists
 house knowledge, cleaning history and robot problems, and streams live telemetry
-to the Android app (and, later, a Raspberry Pi / ROS node).
-
-> **Phase 8 scope.** This service is the persistence + realtime hub. Spring AI and
-> ROS integration are intentionally **not** included yet, but the design leaves
-> room for them (see [Future integration](#future-raspberry-pi--ros)).
+to the Android app.
 
 ---
 
@@ -14,38 +10,23 @@ to the Android app (and, later, a Raspberry Pi / ROS node).
 
 ```
 SwachhBotBackend/
-├── pom.xml                         # Maven build (Spring Boot 3.3, Java 21)
-├── docker-compose.yml              # PostgreSQL 16 for local dev
+├── build.gradle                    # Gradle build (Spring Boot 3.4, Java 21)
+├── Dockerfile                      # Container definition
+├── docker-compose.yml              # Backend + PostgreSQL 16
 └── src/main/
     ├── java/com/swachhbot/backend/
     │   ├── SwachhBotBackendApplication.java
-    │   ├── config/
-    │   │   ├── CorsConfig.java              # CORS for dashboards
-    │   │   ├── GlobalExceptionHandler.java  # RFC-7807 problem responses
-    │   │   └── WebSocketConfig.java         # raw + STOMP endpoints
+    │   ├── ai/                              # AI Planning & Retrieval (Phase 9)
+    │   ├── assistant/                       # AI Assistant (Phase 11)
     │   ├── domain/                          # JPA entities
-    │   │   ├── House.java  Room.java  Furniture.java
-    │   │   ├── OccupancyMap.java
-    │   │   ├── RobotObject.java
-    │   │   ├── RobotStateEntity.java
-    │   │   ├── CleaningSession.java
-    │   │   ├── CleaningCommand.java
-    │   │   ├── ProblemArea.java
-    │   │   └── enums/ (ObjectCategory, ObjectStatus, RobotStatus,
-    │   │              CommandType, CommandStatus)
-    │   ├── dto/                             # request/response records
-    │   │   ├── HouseDtos.java  MapDtos.java  ObjectDtos.java
-    │   │   ├── RobotDtos.java  SessionDtos.java
-    │   ├── repository/                      # Spring Data JPA
-    │   ├── service/                         # business logic
+    │   ├── learning/                        # Adaptive Learning (Phase 10)
     │   ├── controller/                      # REST layer
-    │   └── websocket/
-    │       ├── TelemetryWebSocketHandler.java
-    │       └── TelemetryPublisher.java
+    │   └── websocket/                       # Real-time telemetry
     └── resources/
         ├── application.yml
-        └── db/migration/V1__init_schema.sql
+        └── db/migration/                    # Flyway migrations (V1 to V4)
 ```
+
 
 Layer flow: **Controller → Service → Repository → PostgreSQL**.
 WebSocket publishing is done by services through `TelemetryPublisher`, so
@@ -85,26 +66,31 @@ applied by **Flyway** on startup (`ddl-auto: none`).
 
 ---
 
-## 3. Running locally
+## 3. Running
 
-**Prerequisites:** Java 21, Maven 3.9+ (or open the folder in IntelliJ/VS Code).
+### Prerequisites
+- **Docker Desktop**
+- **Ollama** (started locally at port 11434)
+  - `ollama pull llama3.1`
+  - `ollama pull nomic-embed-text`
+
+### Running with Docker (Recommended)
+This starts both the backend and PostgreSQL (with `pgvector`).
 
 ```bash
-# 1. Start PostgreSQL
-docker compose up -d
-
-# 2. Run the backend
-mvn spring-boot:run
-# → http://localhost:8080
+docker compose up --build -d
 ```
 
-Environment overrides (defaults shown):
+- **Backend:** [http://localhost:8080](http://localhost:8080)
+- **Swagger UI:** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+- **Postgres:** `localhost:5433` (on host)
 
-| Variable | Default |
-|---|---|
-| `DB_URL` | `jdbc:postgresql://localhost:5432/swachhbot` |
-| `DB_USER` | `swachhbot` |
-| `DB_PASSWORD` | `swachhbot` |
+### Manual Run
+```bash
+./gradlew bootRun
+```
+Requires a local Postgres with `pgvector` on port 5433.
+
 
 ---
 

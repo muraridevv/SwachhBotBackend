@@ -1,8 +1,5 @@
-version: "3.9"
-
 services:
   postgres:
-    # pgvector-enabled image (the vanilla postgres image cannot CREATE EXTENSION vector)
     image: pgvector/pgvector:pg16
     container_name: swachhbot-postgres
     environment:
@@ -10,7 +7,7 @@ services:
       POSTGRES_USER: swachhbot
       POSTGRES_PASSWORD: swachhbot
     ports:
-      - "5432:5432"
+      - "5433:5432" # Use 5433 on host to avoid conflict with your local Postgres service
     volumes:
       - swachhbot_pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -18,6 +15,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  backend:
+    build: .
+    container_name: swachhbot-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/swachhbot
+      - SPRING_DATASOURCE_USERNAME=swachhbot
+      - SPRING_DATASOURCE_PASSWORD=swachhbot
+      - SPRING_AI_OLLAMA_BASE_URL=http://host.docker.internal:11434
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   swachhbot_pgdata:

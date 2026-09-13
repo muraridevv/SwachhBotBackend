@@ -109,17 +109,15 @@ public class RobotCommandTools {
 
     // ------------------------------------------------------------- internal
 
-    private String propose(AssistantActionEntity.AssistantActionEntityBuilder builder) {
+    private String propose(AssistantActionEntity action) {
         Instant now = Instant.now();
-        AssistantActionEntity action = builder
-                .id(UUID.randomUUID())
-                .houseId(houseId)
-                .robotId(robotId)
-                .conversationId(conversationId)
-                .status(AssistantActionStatus.PENDING)
-                .createdAt(now)
-                .expiresAt(now.plus(PROPOSAL_TTL_MINUTES, ChronoUnit.MINUTES))
-                .build();
+        action.setId(UUID.randomUUID());
+        action.setHouseId(houseId);
+        action.setRobotId(robotId);
+        action.setConversationId(conversationId);
+        action.setStatus(AssistantActionStatus.PENDING);
+        action.setCreatedAt(now);
+        action.setExpiresAt(now.plus(PROPOSAL_TTL_MINUTES, ChronoUnit.MINUTES));
 
         actionRepository.save(action);
         collector.recordProposal(action.getId());
