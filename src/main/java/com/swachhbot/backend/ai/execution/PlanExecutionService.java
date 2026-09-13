@@ -12,6 +12,9 @@ import com.swachhbot.backend.dto.RobotDtos.CommandDto;
 import com.swachhbot.backend.dto.RobotDtos.CommandRequest;
 import com.swachhbot.backend.repository.CleaningPlanRepository;
 import com.swachhbot.backend.repository.RoomRepository;
+import com.swachhbot.backend.robot.Robot;
+import com.swachhbot.backend.robot.model.RobotCommandResult;
+import com.swachhbot.backend.robot.navigation.NavigationEngine;
 import com.swachhbot.backend.service.CommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,52 +47,24 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PlanExecutionService {
 
-    private final CommandService commandService;
+    private final Robot robot;
+    private final NavigationEngine navigationEngine;
     private final CleaningPlanRepository planRepository;
     private final RoomRepository roomRepository;
     private final PlanValidator planValidator;
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public CommandDto execute(UUID planId, String robotId) {
+    public RobotCommandResult execute(UUID planId, String robotId) {
         CleaningPlan plan = loadValidated(planId);
 
-        List<Map<String, Object>> roomOrders = plan.rooms().stream()
-                .filter(CleaningPlan.PlannedRoom::cleanRequired)
-                .map(r -> {
-                    Map<String, Object> m = new LinkedHashMap<>();
-                    m.put("order", r.order());
-                    m.put("roomId", r.roomId());
-                    m.put("name", r.name());
-                    m.put("priority", r.priority().name());
-                    return m;
-                })
-                .toList();
-
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("planId", plan.planId());
-        payload.put("action", plan.action().name());
-        payload.put("priority", plan.priority().name());
-        payload.put("passes", plan.passes());
-        payload.put("excludedAreas", plan.excludedAreas());
-        payload.put("roomOrder", roomOrders);
-        payload.put("estimatedDurationSeconds", plan.estimatedDurationSeconds());
-        payload.put("reason", plan.reason());
-
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(payload);
-        } catch (Exception e) {
-            throw new PlanValidationException("Could not serialize plan payload");
-        }
-
-        // HIGH-LEVEL COMMAND ONLY. Navigation is the robot's responsibility.
-        CommandDto command = commandService.issue(
-                new CommandRequest(robotId, plan.houseId(), CommandType.START_CLEANING, json));
+        // START NAVIGATION ENGINE (Phase 14)
+        navigationEngine.startCleaning(plan);
 
         markStatus(planId, CleaningPlan.Status.EXECUTING);
-        log.info("Dispatched plan {} to robot {} as command {}", planId, robotId, command.id());
-        return command;
+        log.info("Dispatched plan {} to navigation engine for robot {}", planId, robotId);
+        
+        return new RobotCommandResult(UUID.randomUUID(), "EXECUTING", Instant.now());
     }
 
     /** Called by the robot (or operator) when the run finishes. */

@@ -8,5 +8,7 @@ public enum CommandType {
     STOP,
     RETURN_TO_DOCK,
     GO_TO,
-    RESET_MAP
+    RESET_MAP,
+    MOVE,
+    START_EXPLORATION
 }

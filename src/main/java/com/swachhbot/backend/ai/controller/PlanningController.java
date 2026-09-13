@@ -49,7 +49,7 @@ public class PlanningController {
     // ---------------------------------------------------------------------
 
     @PostMapping("/plans/{planId}/execute")
-    public ResponseEntity<CommandDto> execute(@PathVariable UUID planId,
+    public ResponseEntity<?> execute(@PathVariable UUID planId,
                                               @RequestParam(required = false) String robotId) {
         String target = (robotId == null || robotId.isBlank())
                 ? properties.getDefaultRobotId() : robotId;

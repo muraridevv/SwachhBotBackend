@@ -7,6 +7,8 @@ import com.swachhbot.backend.domain.assistant.AssistantActionStatus;
 import com.swachhbot.backend.domain.enums.CommandType;
 import com.swachhbot.backend.dto.RobotDtos.CommandRequest;
 import com.swachhbot.backend.repository.AssistantActionRepository;
+import com.swachhbot.backend.robot.Robot;
+import com.swachhbot.backend.robot.navigation.ExplorationService;
 import com.swachhbot.backend.service.CommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +37,8 @@ public class AssistantActionService {
 
     private final AssistantActionRepository actionRepository;
     private final PlanExecutionService planExecutionService;
-    private final CommandService commandService;
+    private final Robot robot;
+    private final ExplorationService explorationService;
 
     @Transactional
     public ActionDto confirm(UUID actionId, String robotId) {
@@ -91,14 +94,12 @@ public class AssistantActionService {
                     // Re-validates the stored plan before issuing a high-level command.
                     planExecutionService.execute(action.getPlanId(), action.getRobotId());
                 } else {
-                    commandService.issue(new CommandRequest(
-                            action.getRobotId(), action.getHouseId(), CommandType.START_CLEANING, null));
+                    robot.executeCommand("START_CLEANING", null);
                 }
             }
-            case "PAUSE_CLEANING" -> commandService.issue(new CommandRequest(
-                    action.getRobotId(), action.getHouseId(), CommandType.PAUSE, null));
-            case "STOP_CLEANING" -> commandService.issue(new CommandRequest(
-                    action.getRobotId(), action.getHouseId(), CommandType.STOP, null));
+            case "PAUSE_CLEANING" -> robot.pause();
+            case "STOP_CLEANING" -> robot.stop();
+            case "START_EXPLORATION" -> explorationService.startExploration();
             default -> throw new ActionRejectedException("Unknown action type: " + action.getActionType());
         }
     }
