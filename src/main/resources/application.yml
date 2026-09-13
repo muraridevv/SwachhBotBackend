@@ -74,8 +74,9 @@ swachhbot:
   # Robot Digital Twin (Phase 12)
   # ---------------------------------------------------------------------------
   robot:
-    mode: ${ROBOT_MODE:simulation}    # simulation | physical
+    mode: ${ROBOT_MODE:simulation}    # simulation | physical | ros2
     default-robot-id: swachhbot-01
+    ros-bridge-url: ${ROS_BRIDGE_URL:ws://raspberrypi.local:9090}
 
   # ---------------------------------------------------------------------------
   # AI planning configuration

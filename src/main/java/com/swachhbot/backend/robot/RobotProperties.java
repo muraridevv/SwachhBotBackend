@@ -8,7 +8,8 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "swachhbot.robot")
 public class RobotProperties {
-    /** simulation | physical */
+    /** simulation | physical | ros2 */
     private String mode = "simulation";
     private String defaultRobotId = "swachhbot-01";
+    private String rosBridgeUrl = "ws://raspberrypi.local:9090";
 }

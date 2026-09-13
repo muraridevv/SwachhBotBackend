@@ -45,6 +45,17 @@ public final class RobotDtos {
         public static final String TYPE = "telemetry";
     }
 
+    /** Real-time command frame sent to the robot computer. */
+    public record RobotCommandMessage(
+            String type,          // e.g. "command"
+            String robotId,
+            String commandType,   // e.g. "MOVE", "STOP"
+            String payload,       // e.g. json with linear/angular velocity
+            Instant timestamp
+    ) {
+        public static final String TYPE = "command";
+    }
+
     // ----- Commands -----
 
     public record CommandDto(

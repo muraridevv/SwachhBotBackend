@@ -42,11 +42,20 @@ public class RobotObject {
     @Column(nullable = false)
     private ObjectStatus status;
 
+    @Column(name = "room_name")
+    private String roomName;
+
     @Column(nullable = false)
     private double x;
 
     @Column(nullable = false)
     private double y;
+
+    @Column(name = "previous_x")
+    private Double previousX;
+
+    @Column(name = "previous_y")
+    private Double previousY;
 
     @Column(nullable = false)
     private double confidence;

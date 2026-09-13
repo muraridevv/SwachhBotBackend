@@ -34,6 +34,9 @@ public class NavigationEngineTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        when(robot.getCapabilities()).thenReturn(new com.swachhbot.backend.robot.model.RobotCapabilities(
+            true, true, true, 500.0, 180.0, Collections.emptySet()
+        ));
     }
 
     @Test

@@ -82,6 +82,14 @@ public class NavigationEngine {
         RobotPosition goal = currentGoal.get();
         if (goal == null) return;
 
+        // Phase 21: If robot supports high-level navigation, delegate and stop loop.
+        if (robot.getCapabilities().supportedCommandTypes().contains("NAV2")) {
+            log.info("Delegating navigation to Robot high-level Nav2 stack");
+            robot.navigateTo(goal);
+            currentGoal.set(null);
+            return;
+        }
+
         // Phase 17: Update SLAM before control
         robot.updateSlam();
 

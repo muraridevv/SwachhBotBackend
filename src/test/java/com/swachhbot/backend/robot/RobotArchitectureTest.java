@@ -10,8 +10,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -40,6 +44,12 @@ public class RobotArchitectureTest {
 
     @Test
     void shouldExecuteHighLevelCommand() {
+        when(commandService.issue(any())).thenReturn(new com.swachhbot.backend.dto.RobotDtos.CommandDto(
+            UUID.randomUUID(), "swachhbot-01", null,
+            com.swachhbot.backend.domain.enums.CommandType.STOP,
+            com.swachhbot.backend.domain.enums.CommandStatus.PENDING, null, 
+            Instant.now(), null
+        ));
         robot.executeCommand("STOP", null);
     }
 }

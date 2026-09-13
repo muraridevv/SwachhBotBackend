@@ -2,11 +2,13 @@ package com.swachhbot.backend.robot;
 
 import com.swachhbot.backend.domain.enums.RobotStatus;
 import com.swachhbot.backend.robot.model.*;
+import com.swachhbot.backend.dto.RobotDtos.RobotCommandMessage;
 import com.swachhbot.backend.robot.sensors.*;
 import com.swachhbot.backend.robot.sensors.physical.*;
 import com.swachhbot.backend.robot.slam.SlamEngine;
 import com.swachhbot.backend.robot.slam.SlamEngineFactory;
 import com.swachhbot.backend.robot.navigation.model.OccupancyGrid;
+import com.swachhbot.backend.websocket.TelemetryWebSocketHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
@@ -22,6 +24,7 @@ public class PhysicalRobot implements Robot {
 
     private final String robotId;
     private final SlamEngineFactory slamFactory;
+    private final TelemetryWebSocketHandler communicationHandler;
 
     // Sensors
     private final DistanceSensor distanceSensor;
@@ -34,9 +37,10 @@ public class PhysicalRobot implements Robot {
     // SLAM
     private final AtomicReference<SlamEngine> slamEngine = new AtomicReference<>();
 
-    public PhysicalRobot(String robotId, SlamEngineFactory slamFactory) {
+    public PhysicalRobot(String robotId, SlamEngineFactory slamFactory, TelemetryWebSocketHandler communicationHandler) {
         this.robotId = robotId;
         this.slamFactory = slamFactory;
+        this.communicationHandler = communicationHandler;
         
         // Initialize physical sensor stubs
         this.distanceSensor = new PhysicalDistanceSensor(robotId + "-distance");
@@ -163,28 +167,47 @@ public class PhysicalRobot implements Robot {
 
     @Override
     public void move(MotionCommand command) {
-        log.info("PhysicalRobot.move() - would send to motors: linear={}, angular={}, duration={}ms",
+        log.debug("PhysicalRobot.move() - sending to WebSocket: {}", command);
+        String payload = "{\"linear\": %f, \"angular\": %f, \"duration\": %d}".formatted(
                 command.linearVelocity(), command.angularVelocity(), command.duration().toMillis());
+        communicationHandler.sendToRobot(robotId, new RobotCommandMessage(
+                RobotCommandMessage.TYPE, robotId, "MOVE", payload, Instant.now()));
     }
 
     @Override
     public void stop() {
-        log.info("PhysicalRobot.stop() - would kill motor power");
+        log.info("PhysicalRobot.stop()");
+        communicationHandler.sendToRobot(robotId, new RobotCommandMessage(
+                RobotCommandMessage.TYPE, robotId, "STOP", null, Instant.now()));
     }
 
     @Override
     public void pause() {
         log.info("PhysicalRobot.pause()");
+        communicationHandler.sendToRobot(robotId, new RobotCommandMessage(
+                RobotCommandMessage.TYPE, robotId, "PAUSE", null, Instant.now()));
     }
 
     @Override
     public void resume() {
         log.info("PhysicalRobot.resume()");
+        communicationHandler.sendToRobot(robotId, new RobotCommandMessage(
+                RobotCommandMessage.TYPE, robotId, "RESUME", null, Instant.now()));
+    }
+
+    @Override
+    public void navigateTo(RobotPosition goal) {
+        log.info("PhysicalRobot.navigateTo({}) - sending as high-level intent", goal);
+        String payload = "{\"x\": %f, \"y\": %f}".formatted(goal.x(), goal.y());
+        communicationHandler.sendToRobot(robotId, new RobotCommandMessage(
+                RobotCommandMessage.TYPE, robotId, "NAVIGATE", payload, Instant.now()));
     }
 
     @Override
     public RobotCommandResult executeCommand(String type, String payload) {
         log.info("PhysicalRobot.executeCommand() - type={}, payload={}", type, payload);
+        communicationHandler.sendToRobot(robotId, new RobotCommandMessage(
+                RobotCommandMessage.TYPE, robotId, type, payload, Instant.now()));
         return new RobotCommandResult(UUID.randomUUID(), "ACCEPTED", Instant.now());
     }
 }

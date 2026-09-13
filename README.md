@@ -467,9 +467,31 @@ via **🤖 Ask**.
 
 ![Assistant chat](images/assistant-screen.png)
 
+## 10. ROS 2 Integration (Phase 21)
+
+SwachhBot supports **ROS 2** (Humble/Iron) on a Raspberry Pi. The architecture
+separates the high-level intelligence (Spring Boot) from the low-level robotics
+(ROS 2).
+
+### Topic Mapping
+
+| ROS 2 Topic | Type | SwachhBot Concept |
+|---|---|---|
+| `/cmd_vel` | `geometry_msgs/Twist` | Raw motion control |
+| `/odom` | `nav_msgs/Odometry` | Localization source |
+| `/goal_pose` | `geometry_msgs/PoseStamped` | Nav2 autonomous goal |
+| `/map` | `nav_msgs/OccupancyGrid` | SLAM output |
+
+### Deployment on Raspberry Pi
+
+1. **Install ROS 2** on your Raspberry Pi.
+2. **Install rosbridge-suite**: `sudo apt install ros-humble-rosbridge-suite`.
+3. **Launch the bridge**: `ros2 launch rosbridge_server rosbridge_websocket_launch.xml`.
+4. **Set mode**: In `application.yml`, set `swachhbot.robot.mode=ros2` and `ros-bridge-url` to your Pi's IP.
+
 ---
 
-## 10. Future: Raspberry Pi / ROS
+## 11. Known Limitations
 
 The API is already hardware-agnostic — a robot is just a `robotId` that pushes
 `/robots/{id}/state` and listens on `/ws/telemetry`:

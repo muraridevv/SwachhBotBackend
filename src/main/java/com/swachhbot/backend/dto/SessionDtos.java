@@ -15,6 +15,7 @@ public final class SessionDtos {
     public record SessionDto(
             UUID id,
             UUID houseId,
+            UUID roomId,
             Instant startedAt,
             Instant endedAt,
             long durationSeconds,
@@ -24,6 +25,7 @@ public final class SessionDtos {
     }
 
     public record SessionRequest(
+            UUID roomId,
             @NotNull Instant startedAt,
             Instant endedAt,
             long durationSeconds,

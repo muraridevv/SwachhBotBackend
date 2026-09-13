@@ -1,32 +1,37 @@
 package com.swachhbot.backend.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swachhbot.backend.dto.RobotDtos.RobotCommandMessage;
+import com.swachhbot.backend.dto.RobotDtos.RobotStateDto;
+import com.swachhbot.backend.service.RobotStateService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Raw WebSocket endpoint for real-time telemetry.
- *
- * <p>Clients connect to {@code /ws/telemetry} and receive JSON frames whenever
- * the robot state changes. The same broadcast channel is used by the Android app
- * and (later) the Raspberry Pi / ROS bridge.
+ * Raw WebSocket endpoint for real-time telemetry and commands.
  */
 @Component
 @Slf4j
 public class TelemetryWebSocketHandler extends TextWebSocketHandler {
 
     private final Set<WebSocketSession> sessions = ConcurrentHashMap.newKeySet();
+    private final Map<String, WebSocketSession> robotSessions = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
+    private final RobotStateService stateService;
 
-    public TelemetryWebSocketHandler(ObjectMapper objectMapper) {
+    public TelemetryWebSocketHandler(ObjectMapper objectMapper, @Lazy RobotStateService stateService) {
         this.objectMapper = objectMapper;
+        this.stateService = stateService;
     }
 
     @Override
@@ -38,42 +43,78 @@ public class TelemetryWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         sessions.remove(session);
+        robotSessions.entrySet().removeIf(e -> e.getValue().equals(session));
         log.info("Telemetry client disconnected: {} (total={})", session.getId(), sessions.size());
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
-        // Clients may send a "ping"; we simply echo a pong to keep the link warm.
-        if ("ping".equalsIgnoreCase(message.getPayload())) {
+        String payload = message.getPayload();
+        if ("ping".equalsIgnoreCase(payload)) {
             try {
                 session.sendMessage(new TextMessage("pong"));
-            } catch (Exception ignored) {
-                // session will be cleaned up on close
+            } catch (Exception ignored) {}
+            return;
+        }
+
+        // Registration: "register:swachhbot-01"
+        if (payload.startsWith("register:")) {
+            String robotId = payload.substring(9);
+            robotSessions.put(robotId, session);
+            log.info("Robot {} registered on session {}", robotId, session.getId());
+            return;
+        }
+
+        // Incoming telemetry from robot
+        try {
+            RobotStateDto state = objectMapper.readValue(payload, RobotStateDto.class);
+            if (state.robotId() != null) {
+                stateService.update(state);
             }
+        } catch (Exception e) {
+            // Not a telemetry message, or malformed
+            log.trace("Received non-telemetry message: {}", payload);
         }
     }
 
-    /** Broadcast a JSON-serializable payload to every connected client. */
+    /** Broadcast to all (telemetry). */
     public void broadcast(Object payload) {
-        if (sessions.isEmpty()) {
+        if (sessions.isEmpty()) return;
+        String json = toJson(payload);
+        if (json == null) return;
+        TextMessage msg = new TextMessage(json);
+        sessions.forEach(s -> send(s, msg));
+    }
+
+    /** Direct command to a specific robot. */
+    public void sendToRobot(String robotId, RobotCommandMessage command) {
+        WebSocketSession session = robotSessions.get(robotId);
+        if (session == null || !session.isOpen()) {
+            log.warn("Cannot send command to robot {}: no active session", robotId);
             return;
         }
-        final String json;
+        String json = toJson(command);
+        if (json != null) {
+            send(session, new TextMessage(json));
+        }
+    }
+
+    private String toJson(Object payload) {
         try {
-            json = objectMapper.writeValueAsString(payload);
+            return objectMapper.writeValueAsString(payload);
         } catch (Exception e) {
-            log.warn("Failed to serialize telemetry payload", e);
-            return;
+            log.warn("Failed to serialize WebSocket payload", e);
+            return null;
         }
-        TextMessage message = new TextMessage(json);
-        for (WebSocketSession session : sessions) {
-            try {
-                if (session.isOpen()) {
-                    session.sendMessage(message);
-                }
-            } catch (Exception e) {
-                log.warn("Failed to send telemetry to {}", session.getId(), e);
+    }
+
+    private void send(WebSocketSession session, TextMessage msg) {
+        try {
+            if (session.isOpen()) {
+                session.sendMessage(msg);
             }
+        } catch (IOException e) {
+            log.warn("Failed to send WebSocket message to {}", session.getId(), e);
         }
     }
 }

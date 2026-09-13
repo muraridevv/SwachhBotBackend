@@ -4,7 +4,7 @@ package com.swachhbot.backend.domain.enums;
 public enum ObjectStatus {
     NEW,
     KNOWN,
-    TEMPORARY,
-    MOVING,
+    VISIBLE,
+    MISSING,
     REMOVED
 }

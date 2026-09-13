@@ -205,6 +205,12 @@ public class SimulationRobot implements Robot {
     }
 
     @Override
+    public void navigateTo(RobotPosition goal) {
+        // For simulation, the NavigationEngine loop handles this. 
+        // This is a no-op here as the Engine is driving the Robot.
+    }
+
+    @Override
     public RobotCommandResult executeCommand(String type, String payload) {
         CommandDto dto = commandService.issue(new CommandRequest(robotId, null, CommandType.valueOf(type), payload));
         return new RobotCommandResult(dto.id(), dto.status().name(), dto.issuedAt());

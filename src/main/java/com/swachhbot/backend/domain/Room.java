@@ -40,6 +40,10 @@ public class Room {
     @Column(nullable = false)
     private double height;
 
+    @Column(name = "user_priority", nullable = false)
+    @Builder.Default
+    private int userPriority = 1;
+
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<Furniture> furniture = new HashSet<>();

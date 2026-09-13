@@ -48,13 +48,28 @@ CREATE TABLE robot_objects (
     type             VARCHAR(128) NOT NULL,
     category         VARCHAR(32) NOT NULL,
     status           VARCHAR(32) NOT NULL,
+    room_name        VARCHAR(255),
     x                DOUBLE NOT NULL,
     y                DOUBLE NOT NULL,
+    previous_x       DOUBLE,
+    previous_y       DOUBLE,
     confidence       DOUBLE NOT NULL,
     first_detected   TIMESTAMP NOT NULL,
     last_detected    TIMESTAMP NOT NULL,
     detection_count  INTEGER DEFAULT 1 NOT NULL,
     FOREIGN KEY (house_id) REFERENCES houses (id) ON DELETE CASCADE
+);
+
+CREATE TABLE environment_changes (
+    id              UUID PRIMARY KEY,
+    house_id        UUID NOT NULL,
+    object_id       UUID NOT NULL,
+    change_type     VARCHAR(32) NOT NULL,
+    description     CLOB,
+    confidence      DOUBLE NOT NULL,
+    detected_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (house_id) REFERENCES houses (id) ON DELETE CASCADE,
+    FOREIGN KEY (object_id) REFERENCES robot_objects (id) ON DELETE CASCADE
 );
 
 CREATE TABLE robot_state (

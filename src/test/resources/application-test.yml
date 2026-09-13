@@ -13,6 +13,10 @@ spring:
   sql:
     init:
       mode: never
+  ai:
+    vectorstore:
+      pgvector:
+        initialize-schema: false
 
 swachhbot:
   robot:

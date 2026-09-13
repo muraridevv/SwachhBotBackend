@@ -24,6 +24,10 @@ public class CleaningSession {
     @JoinColumn(name = "house_id", nullable = false)
     private House house;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id")
+    private Room room;
+
     @Column(name = "started_at", nullable = false)
     private Instant startedAt;
 

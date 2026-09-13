@@ -63,6 +63,9 @@ public interface Robot {
     /** Resume current operation. */
     void resume();
 
+    /** Autonomous navigation to a coordinate (Phase 21 Nav2). */
+    void navigateTo(RobotPosition goal);
+
     /** High-level command execution (Phase 9/11 compatibility). */
     RobotCommandResult executeCommand(String type, String payload);
 }
