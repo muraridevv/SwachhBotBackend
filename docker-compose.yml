@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  postgres:
+    # pgvector-enabled image (the vanilla postgres image cannot CREATE EXTENSION vector)
+    image: pgvector/pgvector:pg16
+    container_name: swachhbot-postgres
+    environment:
+      POSTGRES_DB: swachhbot
+      POSTGRES_USER: swachhbot
+      POSTGRES_PASSWORD: swachhbot
+    ports:
+      - "5432:5432"
+    volumes:
+      - swachhbot_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swachhbot -d swachhbot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  swachhbot_pgdata:
