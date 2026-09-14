@@ -40,14 +40,12 @@ dependencies {
     // WebSocket telemetry
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
-    // Database + migrations
+    // Database schema is managed directly from the JPA entity mappings.
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.flywaydb:flyway-core'
-    implementation 'org.flywaydb:flyway-database-postgresql'
     runtimeOnly 'org.postgresql:postgresql'
 
-    // Spring AI - chat model + pgvector vector store (RAG)
-    implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
+    // Spring AI - OpenRouter's OpenAI-compatible API + pgvector vector store (RAG)
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
     implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
 
     // Swagger UI / OpenAPI

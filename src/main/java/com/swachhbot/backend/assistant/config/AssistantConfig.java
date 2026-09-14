@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
  *  Android chat UI
  *        │  POST /api/assistant/chat
  *        ▼
- *  AssistantService ──▶ ChatClient ──▶ Ollama
+ *  AssistantService ──▶ ChatClient ──▶ OpenRouter
  *        │                    │
  *        │                    ├─ read-only tools  (getHouseMap, getRoomInformation,
  *        │                    │   getCleaningHistory, getRobotStatus, getLearnedKnowledge…)

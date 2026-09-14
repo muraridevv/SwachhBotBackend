@@ -23,8 +23,7 @@ SwachhBotBackend/
     │   ├── controller/                      # REST layer
     │   └── websocket/                       # Real-time telemetry
     └── resources/
-        ├── application.yml
-        └── db/migration/                    # Flyway migrations (V1 to V4)
+        └── application.yml
 ```
 
 
@@ -60,9 +59,10 @@ cleaning_commands (append-only command log with ack tracking)
 | `cleaning_commands` | `command`,`status`,`payload`,`issued_at`,`acked_at` | `robot_id` |
 | `problem_areas` | `x`,`y`,`radius`,`description`,`frequency`,`last_seen` | `house_id` |
 
-The authoritative DDL lives in
-[`V1__init_schema.sql`](src/main/resources/db/migration/V1__init_schema.sql) and is
-applied by **Flyway** on startup (`ddl-auto: none`).
+Hibernate creates and updates the relational tables directly from the JPA entity
+mappings at startup (`ddl-auto: update` by default). Set `JPA_DDL_AUTO=validate`
+after provisioning a production schema if you want Hibernate to validate it
+without applying changes.
 
 ---
 
@@ -70,9 +70,8 @@ applied by **Flyway** on startup (`ddl-auto: none`).
 
 ### Prerequisites
 - **Docker Desktop**
-- **Ollama** (started locally at port 11434)
-  - `ollama pull llama3.1`
-  - `ollama pull nomic-embed-text`
+- An [OpenRouter API key](https://openrouter.ai/keys). The default chat and embedding
+  models are OpenRouter free models.
 
 ### Running with Docker (Recommended)
 This starts both the backend and PostgreSQL (with `pgvector`).
@@ -82,8 +81,25 @@ docker compose up --build -d
 ```
 
 - **Backend:** [http://localhost:8080](http://localhost:8080)
+- **Command Center UI:** [http://localhost:8080](http://localhost:8080)
 - **Swagger UI:** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 - **Postgres:** `localhost:5433` (on host)
+
+### Command Center UI
+
+The backend serves a dependency-free operator UI at `/`. It uses the existing
+REST API to provide:
+
+- an editable, canvas-rendered occupancy grid with live robot position and
+  telemetry status;
+- audited manual controls and high-level cleaning controls;
+- an OpenRouter-powered assistant conversation with explicit action
+  confirmation/rejection; and
+- an adaptive-learning dashboard with insights, recommendations, history
+  analysis, and user corrections.
+
+Create or select a house before using the dashboard. Map cell edits are local
+until **Save map edits** is selected.
 
 ### Manual Run
 ```bash
@@ -208,7 +224,7 @@ Spring AI + pgvector RAG pipeline. **The LLM never controls the motors.**
 flowchart TD
     U["User text<br/>'Clean the kitchen.'"] --> R["RAG retrieval<br/>pgvector top-K"]
     H["(House memory)<br/>rooms · objects · sessions<br/>problems · past plans"] --> R
-    R --> C["ChatClient (Ollama)<br/>structured output"]
+    R --> C["ChatClient (OpenRouter)<br/>structured output"]
     C --> S["StructuredCommand<br/>action · rooms · priority<br/>passes · timeframe"]
     C -.->|LLM down / bad JSON| F["RuleBasedPlanner<br/>deterministic fallback"]
     F --> S
@@ -261,7 +277,7 @@ record CleaningPlan(
 ### RAG knowledge base (pgvector)
 
 `KnowledgeIngestionService` flattens house memory into natural-language documents
-and stores their `nomic-embed-text` embeddings in pgvector:
+and stores their OpenRouter embedding-model vectors in pgvector:
 
 | Document kind | Example content |
 |---|---|
@@ -290,14 +306,18 @@ curl -X POST http://localhost:8080/api/ai/plan \
   -d '{"houseId":"<uuid>","request":"Clean the rooms that haven not been cleaned in 3 days"}'
 ```
 
-### Running the AI layer with Ollama
+### Running the AI layer with OpenRouter
 
 ```bash
-ollama serve
-ollama pull llama3.1
-ollama pull nomic-embed-text
-mvn spring-boot:run
+export OPENROUTER_API_KEY="your-openrouter-api-key"
+./gradlew bootRun
 ```
+
+The default models are `meta-llama/llama-3.3-70b-instruct:free` for chat and
+`qwen/qwen3-embedding-8b:free` for embeddings. Override either with
+`OPENROUTER_CHAT_MODEL` or `OPENROUTER_EMBEDDING_MODEL`. If you select another
+embedding model, set `SPRING_AI_VECTORSTORE_PGVECTOR_DIMENSIONS` to its output
+dimension before creating the vector-store table.
 
 Set `AI_ENABLED=false` to bypass the LLM entirely — the deterministic
 `RuleBasedPlanner` still produces fully validated, executable plans.
@@ -392,7 +412,7 @@ classes, and only one of them can change anything.
 flowchart TD
     U["Android chat UI"] -->|POST /api/assistant/chat| S["AssistantService"]
     S --> CC["ChatClient + MessageChatMemoryAdvisor"]
-    CC --> LLM["Ollama"]
+    CC --> LLM["OpenRouter"]
     LLM --> QT["READ-ONLY tools"]
     LLM --> CT["COMMAND tools"]
 
