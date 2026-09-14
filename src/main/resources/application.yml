@@ -50,7 +50,10 @@ spring:
     vectorstore:
       pgvector:
         initialize-schema: true
-        index-type: HNSW
+        # qwen3-embedding-8b produces 4096 dimensions. pgvector HNSW indexes
+        # only support up to 2000 dimensions, so use exact nearest-neighbour
+        # search rather than failing application startup while creating an index.
+        index-type: NONE
         distance-type: COSINE_DISTANCE
         dimensions: 4096           # qwen3-embedding-8b output size
 

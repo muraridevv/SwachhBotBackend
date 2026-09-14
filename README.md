@@ -338,6 +338,12 @@ The default models are `meta-llama/llama-3.3-70b-instruct:free` for chat and
 embedding model, set `SPRING_AI_VECTORSTORE_PGVECTOR_DIMENSIONS` to its output
 dimension before creating the vector-store table.
 
+The default embedding model returns 4096 dimensions. pgvector's HNSW index has
+a 2000-dimension limit, so the application uses `index-type: NONE` and performs
+exact nearest-neighbour search by default. For a large knowledge base, switch
+to an embedding model with 2000 or fewer dimensions, update the configured
+dimension, and then use `HNSW` after recreating the `vector_store` table.
+
 Set `AI_ENABLED=false` to bypass the LLM entirely — the deterministic
 `RuleBasedPlanner` still produces fully validated, executable plans.
 
