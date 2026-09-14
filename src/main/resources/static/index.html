@@ -18,6 +18,18 @@
     <aside class="sidebar">
       <label for="house-select">Active home</label>
       <select id="house-select"><option value="">Loading homes…</option></select>
+      <button id="add-home-button" class="button" type="button">+ Add home</button>
+      <form id="add-home-form" class="home-form" hidden>
+        <label for="home-name">Home name</label>
+        <input id="home-name" maxlength="120" placeholder="e.g. Main house" required>
+        <div class="home-dimensions">
+          <label for="home-width">Width (mm)</label>
+          <label for="home-height">Height (mm)</label>
+          <input id="home-width" type="number" min="1" step="1" value="10000" required>
+          <input id="home-height" type="number" min="1" step="1" value="8000" required>
+        </div>
+        <button class="button" type="submit">Create home</button>
+      </form>
       <button id="refresh-button" class="button secondary">↻ Refresh data</button>
       <label for="robot-id">Robot ID</label>
       <input id="robot-id" value="swachhbot-01" autocomplete="off">
