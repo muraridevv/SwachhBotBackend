@@ -107,6 +107,17 @@ until **Save map edits** is selected.
 ```
 Requires a local Postgres with `pgvector` on port 5433.
 
+> **`CREATE EXTENSION vector` startup error:** This means the application has
+> connected to a PostgreSQL server without the pgvector extension installed.
+> Start the bundled database with `docker compose up -d postgres` (it is
+> published on port `5433`), then run the application. If you use a different
+> PostgreSQL server, install pgvector there and set `DB_URL` to that server's
+> JDBC URL. You can verify the extension with:
+>
+> ```bash
+> docker compose exec postgres psql -U swachhbot -d swachhbot -c "CREATE EXTENSION IF NOT EXISTS vector;"
+> ```
+
 
 ---
 
