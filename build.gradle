@@ -46,8 +46,8 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql'
     runtimeOnly 'org.postgresql:postgresql'
 
-    // Spring AI - chat model + pgvector vector store (RAG)
-    implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
+    // Spring AI - OpenRouter's OpenAI-compatible API + pgvector vector store (RAG)
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
     implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
 
     // Swagger UI / OpenAPI

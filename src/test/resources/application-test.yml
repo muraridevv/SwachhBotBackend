@@ -14,6 +14,9 @@ spring:
     init:
       mode: never
   ai:
+    openai:
+      # Keeps Spring AI's OpenRouter-compatible client from requiring a real key in tests.
+      api-key: test-openrouter-key
     vectorstore:
       pgvector:
         initialize-schema: false

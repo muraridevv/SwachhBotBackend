@@ -33,30 +33,29 @@ spring:
       write-dates-as-timestamps: false
 
   # ---------------------------------------------------------------------------
-  # Spring AI — local development with Ollama (no cloud API costs).
-  # Start Ollama, then:  ollama pull llama3.1 && ollama pull nomic-embed-text
+  # Spring AI — OpenRouter's OpenAI-compatible API.
+  # Create a key at https://openrouter.ai/keys and provide it as OPENROUTER_API_KEY.
+  # Both defaults below use OpenRouter's free-model catalog; override them when needed.
   # ---------------------------------------------------------------------------
   ai:
-    ollama:
-      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
-      init:
-        # Never block startup on Ollama being reachable; pull models manually:
-        #   ollama pull llama3.1 && ollama pull nomic-embed-text
-        pull-model-strategy: never
+    openai:
+      # Spring AI appends /v1/{chat,embeddings}; OpenRouter's API root is /api.
+      base-url: ${OPENROUTER_BASE_URL:https://openrouter.ai/api}
+      api-key: ${OPENROUTER_API_KEY:}
       chat:
         options:
-          model: ${OLLAMA_CHAT_MODEL:llama3.1}
+          model: ${OPENROUTER_CHAT_MODEL:meta-llama/llama-3.3-70b-instruct:free}
           temperature: 0.1          # low temperature: we want deterministic JSON
       embedding:
         options:
-          model: ${OLLAMA_EMBED_MODEL:nomic-embed-text}
+          model: ${OPENROUTER_EMBEDDING_MODEL:qwen/qwen3-embedding-8b:free}
 
     vectorstore:
       pgvector:
         initialize-schema: true
         index-type: HNSW
         distance-type: COSINE_DISTANCE
-        dimensions: 768            # nomic-embed-text output size
+        dimensions: 4096           # qwen3-embedding-8b output size
 
 logging:
   level:

@@ -52,15 +52,14 @@ services:
       SPRING_DATASOURCE_USERNAME: swachhbot
       SPRING_DATASOURCE_PASSWORD: swachhbot
 
-      # Spring AI / Ollama running on Windows host
-      SPRING_AI_OLLAMA_BASE_URL: http://host.docker.internal:11434
+      # Spring AI / OpenRouter. Set OPENROUTER_API_KEY in the shell or .env file.
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY before starting Docker Compose}
+      OPENROUTER_CHAT_MODEL: ${OPENROUTER_CHAT_MODEL:-meta-llama/llama-3.3-70b-instruct:free}
+      OPENROUTER_EMBEDDING_MODEL: ${OPENROUTER_EMBEDDING_MODEL:-qwen/qwen3-embedding-8b:free}
 
     depends_on:
       postgres:
         condition: service_healthy
-
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
     restart: unless-stopped
 
