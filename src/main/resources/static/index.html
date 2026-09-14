@@ -47,7 +47,7 @@
         <div class="map-layout">
           <article class="map-card">
             <div class="map-toolbar"><div class="legend"><span><b class="free"></b>Free</span><span><b class="obstacle"></b>Obstacle</span><span><b class="unknown"></b>Unknown</span><span><b class="cleaned"></b>Cleaned</span></div><div><button id="save-map" class="button secondary">Save map edits</button></div></div>
-            <div class="canvas-wrap"><canvas id="map-canvas" aria-label="Occupancy grid map"></canvas><div id="map-empty" class="empty-map">Select a home with a saved occupancy map to begin.</div></div>
+            <div class="canvas-wrap"><canvas id="map-canvas" aria-label="Occupancy grid map"></canvas><div id="map-empty" class="empty-map"><p>Select a home with a saved occupancy map to begin.</p><button id="initialize-map" class="button" type="button">Create blank map</button></div></div>
             <p class="hint">Click a cell to cycle its state: free → obstacle → cleaned → unknown. The teal marker is the live robot position.</p>
           </article>
           <aside class="status-stack"><article class="metric-card"><span>Robot status</span><strong id="robot-status">—</strong><small id="robot-updated">Waiting for telemetry</small></article><article class="metric-card"><span>Battery</span><strong id="robot-battery">—</strong><div class="meter"><i id="battery-meter"></i></div></article><article class="metric-card"><span>Position</span><strong id="robot-position">—</strong><small id="robot-motion">—</small></article></aside>
