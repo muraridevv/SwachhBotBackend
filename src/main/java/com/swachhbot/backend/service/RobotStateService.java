@@ -6,10 +6,12 @@ import com.swachhbot.backend.dto.RobotDtos.RobotStateDto;
 import com.swachhbot.backend.dto.RobotDtos.TelemetryMessage;
 import com.swachhbot.backend.repository.HouseRepository;
 import com.swachhbot.backend.repository.RobotStateRepository;
+import com.swachhbot.backend.robot.RobotProperties;
 import com.swachhbot.backend.websocket.TelemetryPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.Instant;
 
@@ -21,6 +23,24 @@ public class RobotStateService {
     private final RobotStateRepository robotStateRepository;
     private final HouseRepository houseRepository;
     private final TelemetryPublisher telemetryPublisher;
+    private final RobotProperties robotProperties;
+
+    /** Advances in-process cleaning runs so simulation mode has visible telemetry. */
+    @Scheduled(fixedRate = 250)
+    public void advanceSimulation() {
+        if (!"simulation".equalsIgnoreCase(robotProperties.getMode())) return;
+        robotStateRepository.findByStatus(com.swachhbot.backend.domain.enums.RobotStatus.CLEANING).forEach(state -> {
+            double heading = Math.toRadians(state.getRotation());
+            state.setX(state.getX() + 25 * Math.cos(heading));
+            state.setY(state.getY() + 25 * Math.sin(heading));
+            state.setVelocity(100);
+            state.setBattery(Math.max(0, state.getBattery() - 0.01));
+            RobotStateEntity saved = robotStateRepository.save(state);
+            telemetryPublisher.publishTelemetry(new TelemetryMessage(TelemetryMessage.TYPE, saved.getRobotId(),
+                    saved.getX(), saved.getY(), saved.getRotation(), saved.getVelocity(), saved.getBattery(),
+                    saved.getStatus(), false, null, Instant.now()));
+        });
+    }
 
     @Transactional(readOnly = true)
     public RobotStateDto get(String robotId) {
