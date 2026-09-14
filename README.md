@@ -81,8 +81,25 @@ docker compose up --build -d
 ```
 
 - **Backend:** [http://localhost:8080](http://localhost:8080)
+- **Command Center UI:** [http://localhost:8080](http://localhost:8080)
 - **Swagger UI:** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 - **Postgres:** `localhost:5433` (on host)
+
+### Command Center UI
+
+The backend serves a dependency-free operator UI at `/`. It uses the existing
+REST API to provide:
+
+- an editable, canvas-rendered occupancy grid with live robot position and
+  telemetry status;
+- audited manual controls and high-level cleaning controls;
+- an OpenRouter-powered assistant conversation with explicit action
+  confirmation/rejection; and
+- an adaptive-learning dashboard with insights, recommendations, history
+  analysis, and user corrections.
+
+Create or select a house before using the dashboard. Map cell edits are local
+until **Save map edits** is selected.
 
 ### Manual Run
 ```bash

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <title>SwachhBot Command Center</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="SwachhBot home"><span class="brand-mark">S</span><span>SwachhBot</span></a>
+    <span class="tag">COMMAND CENTER</span>
+    <div class="connection"><i id="connection-dot"></i><span id="connection-label">Connecting…</span></div>
+  </header>
+
+  <main class="shell">
+    <aside class="sidebar">
+      <label for="house-select">Active home</label>
+      <select id="house-select"><option value="">Loading homes…</option></select>
+      <button id="refresh-button" class="button secondary">↻ Refresh data</button>
+      <label for="robot-id">Robot ID</label>
+      <input id="robot-id" value="swachhbot-01" autocomplete="off">
+      <nav aria-label="Dashboard sections">
+        <button class="nav-item active" data-tab="map">⌘ <span>Live map</span></button>
+        <button class="nav-item" data-tab="assistant">✦ <span>AI assistant</span></button>
+        <button class="nav-item" data-tab="learning">◌ <span>Learning</span></button>
+      </nav>
+      <p class="sidebar-note">Commands remain queued until the robot acknowledges them.</p>
+    </aside>
+
+    <section class="workspace">
+      <section id="map-tab" class="tab-page active">
+        <div class="page-heading"><div><p class="eyebrow">LIVE NAVIGATION</p><h1>Your robot’s world, in real time.</h1></div><div id="map-version" class="quiet">No map loaded</div></div>
+        <div class="map-layout">
+          <article class="map-card">
+            <div class="map-toolbar"><div class="legend"><span><b class="free"></b>Free</span><span><b class="obstacle"></b>Obstacle</span><span><b class="unknown"></b>Unknown</span><span><b class="cleaned"></b>Cleaned</span></div><div><button id="save-map" class="button secondary">Save map edits</button></div></div>
+            <div class="canvas-wrap"><canvas id="map-canvas" aria-label="Occupancy grid map"></canvas><div id="map-empty" class="empty-map">Select a home with a saved occupancy map to begin.</div></div>
+            <p class="hint">Click a cell to cycle its state: free → obstacle → cleaned → unknown. The teal marker is the live robot position.</p>
+          </article>
+          <aside class="status-stack"><article class="metric-card"><span>Robot status</span><strong id="robot-status">—</strong><small id="robot-updated">Waiting for telemetry</small></article><article class="metric-card"><span>Battery</span><strong id="robot-battery">—</strong><div class="meter"><i id="battery-meter"></i></div></article><article class="metric-card"><span>Position</span><strong id="robot-position">—</strong><small id="robot-motion">—</small></article></aside>
+        </div>
+        <section class="control-section"><div><p class="eyebrow">MANUAL CONTROL</p><h2>Control pad</h2><p>Use only when the area is clear. Every input creates an auditable command.</p></div><div class="control-pad" aria-label="Manual robot controls"><button data-command="MOVE" data-payload='{"linear":250,"angular":0}' aria-label="Move forward">▲</button><button data-command="MOVE" data-payload='{"linear":0,"angular":-120}' aria-label="Turn left">◀</button><button class="stop" data-command="STOP" aria-label="Stop robot">■</button><button data-command="MOVE" data-payload='{"linear":0,"angular":120}' aria-label="Turn right">▶</button><button data-command="MOVE" data-payload='{"linear":-150,"angular":0}' aria-label="Move backward">▼</button></div><div class="quick-actions"><button class="button" data-command="START_CLEANING">Start cleaning</button><button class="button secondary" data-command="PAUSE">Pause</button><button class="button secondary" data-command="RETURN_TO_DOCK">Return to dock</button></div></section>
+      </section>
+
+      <section id="assistant-tab" class="tab-page">
+        <div class="page-heading"><div><p class="eyebrow">OPENROUTER ASSISTANT</p><h1>Ask, plan, then confirm.</h1><p>The assistant can prepare actions, but it cannot move the robot without your confirmation.</p></div><button id="reset-chat" class="button secondary">New conversation</button></div>
+        <div class="assistant-layout"><article class="chat-card"><div id="chat-log" class="chat-log" aria-live="polite"><div class="message assistant">Hi — I can explain your home, check the robot, and prepare a cleaning action for you to review.</div></div><form id="chat-form" class="chat-compose"><input id="chat-input" placeholder="e.g. What rooms need attention?" maxlength="2000" required><button class="button" type="submit">Send</button></form></article><aside class="proposal-card"><p class="eyebrow">CONFIRMATION REQUIRED</p><h2>Prepared actions</h2><div id="pending-actions" class="action-list"><p class="muted">No actions awaiting confirmation.</p></div><div id="assistant-reasoning" class="reasoning"></div></aside></div>
+      </section>
+
+      <section id="learning-tab" class="tab-page"><div class="page-heading"><div><p class="eyebrow">ADAPTIVE LEARNING</p><h1>What your robot has learned.</h1><p id="learning-headline">Select a home to see learned patterns and recommendations.</p></div><button id="analyze-learning" class="button">Analyze history</button></div><div class="learning-metrics"><article><strong id="confirmed-count">—</strong><span>Confirmed insights</span></article><article><strong id="emerging-count">—</strong><span>Emerging patterns</span></article><article><strong id="recommendation-count">—</strong><span>Recommendations</span></article></div><div class="learning-layout"><article class="insights-card"><h2>Insights</h2><div id="insights-list" class="insight-list"><p class="muted">No insights loaded.</p></div></article><aside class="recommendations-card"><h2>Recommendations</h2><div id="recommendations-list"><p class="muted">No recommendations loaded.</p></div><hr><h3>Correct the robot</h3><form id="correction-form" class="correction-form"><select id="correction-type"><option>OBJECT</option><option>ROOM</option><option>AREA</option></select><input id="correction-key" placeholder="Object, room, or area" required><input id="correction-assertion" placeholder="e.g. The chair is temporary." required><button class="button" type="submit">Save correction</button></form></aside></div></section>
+    </section>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
