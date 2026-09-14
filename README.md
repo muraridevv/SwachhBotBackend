@@ -23,8 +23,7 @@ SwachhBotBackend/
     │   ├── controller/                      # REST layer
     │   └── websocket/                       # Real-time telemetry
     └── resources/
-        ├── application.yml
-        └── db/migration/                    # Flyway migrations (V1 to V4)
+        └── application.yml
 ```
 
 
@@ -60,9 +59,10 @@ cleaning_commands (append-only command log with ack tracking)
 | `cleaning_commands` | `command`,`status`,`payload`,`issued_at`,`acked_at` | `robot_id` |
 | `problem_areas` | `x`,`y`,`radius`,`description`,`frequency`,`last_seen` | `house_id` |
 
-The authoritative DDL lives in
-[`V1__init_schema.sql`](src/main/resources/db/migration/V1__init_schema.sql) and is
-applied by **Flyway** on startup (`ddl-auto: none`).
+Hibernate creates and updates the relational tables directly from the JPA entity
+mappings at startup (`ddl-auto: update` by default). Set `JPA_DDL_AUTO=validate`
+after provisioning a production schema if you want Hibernate to validate it
+without applying changes.
 
 ---
 

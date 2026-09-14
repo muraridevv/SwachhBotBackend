@@ -8,8 +8,6 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
-  flyway:
-    enabled: false
   sql:
     init:
       mode: never
