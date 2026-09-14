@@ -24,6 +24,7 @@ public final class HouseDtos {
     }
 
     public record HouseRequest(
+            UUID id, // Optional client-side ID
             @NotBlank String name,
             @Positive double width,
             @Positive double height
@@ -44,6 +45,7 @@ public final class HouseDtos {
     }
 
     public record RoomRequest(
+            UUID id, // Optional client-side ID
             @NotBlank String name,
             double x,
             double y,

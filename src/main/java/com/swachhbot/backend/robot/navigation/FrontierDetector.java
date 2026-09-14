@@ -21,7 +21,7 @@ public class FrontierDetector {
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                if (grid.getCell(x, y) == OccupancyGrid.CellType.FREE) {
+                if (grid.isTraversable(x, y)) {
                     if (hasUnknownNeighbor(x, y, grid)) {
                         frontierCells.add(new GridPos(x, y));
                     }

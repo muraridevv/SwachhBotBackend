@@ -11,10 +11,10 @@ import java.time.Duration;
  * Converts a path into a sequence of motion commands.
  */
 public class MotionController {
-    private static final double REACHED_THRESHOLD = 10.0; // mm
-    private static final double ROTATION_THRESHOLD = 3.0; // degrees
-    private static final double LINEAR_SPEED = 200.0;     // mm/s
-    private static final double ANGULAR_SPEED = 90.0;    // deg/s
+    private static final double REACHED_THRESHOLD = 15.0; // Increased for robustness
+    private static final double ROTATION_THRESHOLD = 2.0; // Tighter tolerance
+    private static final double LINEAR_SPEED = 250.0;     // mm/s
+    private static final double ANGULAR_SPEED = 120.0;    // deg/s
 
     public MotionCommand nextCommand(RobotState currentState, Path path) {
         if (path.isEmpty()) return new MotionCommand(0, 0, Duration.ZERO);
@@ -25,14 +25,9 @@ public class MotionController {
         double distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance < REACHED_THRESHOLD) {
-            // Target reached, should move to next point in next call if path was updated
             return new MotionCommand(0, 0, Duration.ZERO);
         }
 
-        // Calculate target heading
-        // 0 degrees is UP (negative Y). Math.atan2(y, x) is 0 at RIGHT.
-        // We need to map our coordinate system.
-        // In the simulator: 0 deg is UP.
         double targetAngle = Math.toDegrees(Math.atan2(dy, dx)) + 90;
         if (targetAngle < 0) targetAngle += 360;
         targetAngle %= 360;
@@ -42,13 +37,17 @@ public class MotionController {
         while (angleDiff > 180) angleDiff -= 360;
         while (angleDiff < -180) angleDiff += 360;
 
-        if (Math.abs(angleDiff) > ROTATION_THRESHOLD) {
-            // Rotate first
+        if (Math.abs(angleDiff) > 30.0) {
+            // Large turn: stop and rotate in place
             double direction = Math.signum(angleDiff);
             return new MotionCommand(0, direction * ANGULAR_SPEED, Duration.ofMillis(100));
+        } else if (Math.abs(angleDiff) > ROTATION_THRESHOLD) {
+            // Medium turn: slow move while rotating
+            double direction = Math.signum(angleDiff);
+            return new MotionCommand(LINEAR_SPEED * 0.4, direction * ANGULAR_SPEED, Duration.ofMillis(100));
         } else {
-            // Move forward and smoothly correct angle
-            return new MotionCommand(LINEAR_SPEED, angleDiff * 2.0, Duration.ofMillis(100));
+            // Small correction: full speed
+            return new MotionCommand(LINEAR_SPEED, angleDiff * 3.0, Duration.ofMillis(100));
         }
     }
 }

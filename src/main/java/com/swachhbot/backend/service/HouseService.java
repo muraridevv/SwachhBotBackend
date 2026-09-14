@@ -34,12 +34,28 @@ public class HouseService {
     }
 
     public HouseDto create(HouseRequest request) {
+        if (request.id() != null) {
+            var existing = houseRepository.findById(request.id());
+            if (existing.isPresent()) {
+                return toDto(existing.get());
+            }
+        }
+        
         House house = House.builder()
+                .id(request.id())
                 .name(request.name())
                 .width(request.width())
                 .height(request.height())
                 .build();
-        return toDto(houseRepository.save(house));
+
+        try {
+            return toDto(houseRepository.saveAndFlush(house));
+        } catch (org.springframework.dao.DataIntegrityViolationException | org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+            // Handle concurrent creation gracefully
+            return houseRepository.findById(request.id())
+                    .map(this::toDto)
+                    .orElseThrow(() -> e);
+        }
     }
 
     public HouseDto update(UUID id, HouseRequest request) {
@@ -59,9 +75,17 @@ public class HouseService {
     }
 
     public RoomDto addRoom(UUID houseId, RoomRequest request) {
+        if (request.id() != null) {
+            var existing = roomRepository.findById(request.id());
+            if (existing.isPresent()) {
+                return toDto(existing.get());
+            }
+        }
+
         House house = houseRepository.findById(houseId)
                 .orElseThrow(() -> new ResourceNotFoundException("House not found: " + houseId));
         Room room = Room.builder()
+                .id(request.id())
                 .house(house)
                 .name(request.name())
                 .x(request.x())
@@ -69,7 +93,14 @@ public class HouseService {
                 .width(request.width())
                 .height(request.height())
                 .build();
-        return toDto(roomRepository.save(room));
+        
+        try {
+            return toDto(roomRepository.saveAndFlush(room));
+        } catch (org.springframework.dao.DataIntegrityViolationException | org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+            return roomRepository.findById(request.id())
+                    .map(this::toDto)
+                    .orElseThrow(() -> e);
+        }
     }
 
     // ----- Mapping -----

@@ -41,6 +41,7 @@ public class NavigationEngine {
     private final AtomicReference<List<RobotPosition>> currentPath = new AtomicReference<>();
     
     private RobotPosition lastPosition = null;
+    private double lastOrientation = -1;
     private int stuckCounter = 0;
 
     public void setGoal(RobotPosition goal) {
@@ -81,7 +82,7 @@ public class NavigationEngine {
         robot.stop();
     }
 
-    @Scheduled(fixedRate = 100)
+    @Scheduled(fixedRate = 50)
     public void controlLoop() {
         RobotPosition goal = currentGoal.get();
         if (goal == null) return;
@@ -114,13 +115,17 @@ public class NavigationEngine {
         if (lastPosition != null) {
             double dx = currentPos.x() - lastPosition.x();
             double dy = currentPos.y() - lastPosition.y();
-            if (Math.sqrt(dx * dx + dy * dy) < 5.0) {
+            double dRot = Math.abs(currentOrientation.degrees() - lastOrientation);
+            if (dRot > 180) dRot = 360 - dRot;
+
+            if (Math.sqrt(dx * dx + dy * dy) < 5.0 && dRot < 1.0) {
                 stuckCounter++;
             } else {
                 stuckCounter = 0;
             }
         }
         lastPosition = currentPos;
+        lastOrientation = currentOrientation.degrees();
 
         if (stuckCounter > 20) {
             log.warn("Robot appears stuck! Stopping and replanning.");

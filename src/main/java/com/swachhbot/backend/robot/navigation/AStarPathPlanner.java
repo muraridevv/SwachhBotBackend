@@ -36,6 +36,14 @@ public class AStarPathPlanner implements PathPlanner {
             }
 
             for (GridPos neighborPos : getNeighbors(current.pos, grid)) {
+                // If we are at the very start node, we allow moving into "unsafe" cells to escape
+                // otherwise a robot starting near a wall would never be able to plan a path.
+                boolean isEscapingStart = current.pos.x == startX && current.pos.y == startY;
+                
+                if (!isEscapingStart && !isSafe(neighborPos.x, neighborPos.y, grid)) {
+                    continue;
+                }
+
                 double tentativeGScore = current.gScore + distance(current.pos, neighborPos);
                 Node neighbor = allNodes.get(neighborPos);
 
@@ -73,12 +81,29 @@ public class AStarPathPlanner implements PathPlanner {
                 if (dx == 0 && dy == 0) continue;
                 int nx = pos.x + dx;
                 int ny = pos.y + dy;
+                
                 if (grid.isTraversable(nx, ny)) {
                     neighbors.add(new GridPos(nx, ny));
                 }
             }
         }
         return neighbors;
+    }
+
+    private boolean isSafe(int x, int y, OccupancyGrid grid) {
+        // Basic inflation: no obstacles within 3 cells (30mm)
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dy = -3; dy <= 3; dy++) {
+                int nx = x + dx;
+                int ny = y + dy;
+                if (nx >= 0 && nx < grid.getWidth() && ny >= 0 && ny < grid.getHeight()) {
+                    if (grid.getCell(nx, ny) == OccupancyGrid.CellType.OBSTACLE) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     private Path reconstructPath(Node goalNode, OccupancyGrid grid) {

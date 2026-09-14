@@ -24,7 +24,10 @@ public class RobotStateService {
 
     @Transactional(readOnly = true)
     public RobotStateDto get(String robotId) {
-        return toDto(findOrThrow(robotId));
+        return robotStateRepository.findByRobotId(robotId)
+                .map(this::toDto)
+                .orElse(new RobotStateDto(robotId, null, 0, 0, 0, 0, 100, 
+                        com.swachhbot.backend.domain.enums.RobotStatus.IDLE, false, Instant.now()));
     }
 
     /** Called by the robot (or by the Android simulator) to report its live state. */
