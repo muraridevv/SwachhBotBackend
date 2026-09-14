@@ -52,7 +52,7 @@ public class SimulationRobot implements Robot {
         this.distanceSensor = new SimulatedDistanceSensor(robotId, stateService);
         this.camera = new SimulatedCamera(robotId);
         this.imu = new SimulatedIMU(robotId, stateService);
-        this.wheelEncoder = new SimulatedWheelEncoder(robotId);
+        this.wheelEncoder = new SimulatedWheelEncoder(robotId, stateService);
         this.batterySensor = new SimulatedBatterySensor(robotId, stateService);
         this.cliffSensor = new SimulatedCliffSensor(robotId);
     }

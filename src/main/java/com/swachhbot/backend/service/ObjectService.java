@@ -5,6 +5,7 @@ import com.swachhbot.backend.domain.RobotObject;
 import com.swachhbot.backend.domain.vision.EnvironmentChange;
 import com.swachhbot.backend.domain.enums.ObjectStatus;
 import com.swachhbot.backend.dto.ObjectDtos.ObjectDto;
+import com.swachhbot.backend.dto.ObjectDtos.EnvironmentChangeDto;
 import com.swachhbot.backend.dto.ObjectDtos.ObjectUpsertRequest;
 import com.swachhbot.backend.repository.EnvironmentChangeRepository;
 import com.swachhbot.backend.repository.HouseRepository;
@@ -36,11 +37,24 @@ public class ObjectService {
         return objectRepository.findByHouseId(houseId).stream().map(this::toDto).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<EnvironmentChangeDto> findChangesByHouse(UUID houseId) {
+        return changeRepository.findByHouseIdOrderByDetectedAtDesc(houseId).stream()
+                .map(change -> new EnvironmentChangeDto(
+                        change.getId(), change.getHouse().getId(), change.getObject().getId(),
+                        change.getChangeType(), change.getDescription(), change.getConfidence(), change.getDetectedAt()))
+                .toList();
+    }
+
     /** Idempotent upsert with change detection (Phase 18). */
     public ObjectDto upsert(UUID houseId, ObjectUpsertRequest request) {
         if (request.confidence() < CONFIDENCE_THRESHOLD) {
             log.debug("Ignoring low-confidence detection: {} ({})", request.type(), request.confidence());
-            return null;
+            // A REST controller must never serialize a null body for a valid
+            // detection request. Return a faithful, non-persisted echo instead.
+            return new ObjectDto(request.id(), houseId, request.type(), request.category(), request.status(),
+                    request.roomName(), request.x(), request.y(), request.confidence(),
+                    request.firstDetected(), request.lastDetected(), request.detectionCount());
         }
 
         House house = houseRepository.findById(houseId)

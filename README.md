@@ -105,7 +105,26 @@ until **Save map edits** is selected.
 ```bash
 ./gradlew bootRun
 ```
-Requires a local Postgres with `pgvector` on port 5433.
+Requires a local Postgres with `pgvector` on port 5432. The bundled Docker
+database is published on port 5433, so use
+`DB_URL=jdbc:postgresql://localhost:5433/swachhbot` when connecting to it from
+a locally run backend.
+
+> **Windows PostgreSQL / `CREATE EXTENSION vector` startup error:** pgvector
+> must be enabled in the specific `swachhbot` database, not merely installed in
+> the PostgreSQL server directory. Run the following once from `psql` using a
+> PostgreSQL superuser (for example, `postgres`) against that database, then
+> start the backend as the `swachhbot` user:
+>
+> ```bash
+> psql -U postgres -d swachhbot -c "CREATE EXTENSION IF NOT EXISTS vector;"
+> psql -U postgres -d swachhbot -c "\\dx vector"
+> ```
+>
+> If the first command says that extension `vector` is not available, pgvector
+> was installed for a different PostgreSQL version or is not in that server's
+> `share\\extension` directory; reinstall the matching pgvector build and restart
+> PostgreSQL before retrying.
 
 
 ---
@@ -318,6 +337,12 @@ The default models are `meta-llama/llama-3.3-70b-instruct:free` for chat and
 `OPENROUTER_CHAT_MODEL` or `OPENROUTER_EMBEDDING_MODEL`. If you select another
 embedding model, set `SPRING_AI_VECTORSTORE_PGVECTOR_DIMENSIONS` to its output
 dimension before creating the vector-store table.
+
+The default embedding model returns 4096 dimensions. pgvector's HNSW index has
+a 2000-dimension limit, so the application uses `index-type: NONE` and performs
+exact nearest-neighbour search by default. For a large knowledge base, switch
+to an embedding model with 2000 or fewer dimensions, update the configured
+dimension, and then use `HNSW` after recreating the `vector_store` table.
 
 Set `AI_ENABLED=false` to bypass the LLM entirely — the deterministic
 `RuleBasedPlanner` still produces fully validated, executable plans.
