@@ -6,7 +6,7 @@ spring:
     name: swachhbot-backend
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5433/swachhbot}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/swachhbot}
     username: ${DB_USER:swachhbot}
     password: ${DB_PASSWORD:swachhbot}
     driver-class-name: org.postgresql.Driver

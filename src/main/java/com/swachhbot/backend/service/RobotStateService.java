@@ -58,6 +58,7 @@ public class RobotStateService {
                 saved.getVelocity(),
                 saved.getBattery(),
                 saved.getStatus(),
+                incoming.isColliding(),
                 null,
                 Instant.now()
         ));
@@ -77,6 +78,7 @@ public class RobotStateService {
                 entity.getVelocity(),
                 entity.getBattery(),
                 entity.getStatus(),
+                false, // isColliding (not tracked in persistent state)
                 cleaningPercent,
                 Instant.now()
         ));
@@ -97,6 +99,7 @@ public class RobotStateService {
                 e.getVelocity(),
                 e.getBattery(),
                 e.getStatus(),
+                false, // Persistent state doesn't track real-time collision
                 e.getUpdatedAt()
         );
     }

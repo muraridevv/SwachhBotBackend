@@ -50,7 +50,18 @@ public class FrontierDetector {
             int centerX = (int) (sumX / cluster.size());
             int centerY = (int) (sumY / cluster.size());
             
-            frontiers.add(new RobotPosition(grid.gridToWorldX(centerX), grid.gridToWorldY(centerY)));
+            // Pick a point in the cluster closest to the centroid to ensure it's a FREE cell
+            GridPos bestPos = cluster.get(0);
+            double minDst = Double.MAX_VALUE;
+            for (GridPos p : cluster) {
+                double dst = Math.pow(p.x() - centerX, 2) + Math.pow(p.y() - centerY, 2);
+                if (dst < minDst) {
+                    minDst = dst;
+                    bestPos = p;
+                }
+            }
+            
+            frontiers.add(new RobotPosition(grid.gridToWorldX(bestPos.x()), grid.gridToWorldY(bestPos.y())));
         }
 
         return frontiers;
@@ -87,7 +98,7 @@ public class FrontierDetector {
                 for (int dy = -1; dy <= 1; dy++) {
                     for (int dx = -1; dx <= 1; dx++) {
                         if (dx == 0 && dy == 0) continue;
-                        GridPos neighbor = new GridPos(current.x + dx, current.y + dy);
+                        GridPos neighbor = new GridPos(current.x() + dx, current.y() + dy);
                         if (unvisited.contains(neighbor)) {
                             unvisited.remove(neighbor);
                             queue.add(neighbor);

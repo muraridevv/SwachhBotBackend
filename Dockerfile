@@ -1,33 +1,44 @@
-# Stage 1: Build
-FROM eclipse-temurin:21-jdk AS build
+# ============================================================
+# Stage 1 — Build
+# ============================================================
+FROM gradle:9.6.0-jdk21 AS build
+
 WORKDIR /app
 
-# Copy gradle wrapper and config
-COPY gradlew .
-COPY gradlew.bat .
-COPY gradle gradle
+# Copy Gradle configuration first
 COPY build.gradle settings.gradle ./
+COPY gradle ./gradle
 
-# Ensure gradlew is executable and fix Windows line endings
-RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
+# Resolve dependencies
+RUN gradle dependencies --no-daemon
 
-# Pre-download dependencies (layer caching)
-# This will fail build if offline, but helps speed up subsequent builds
-RUN ./gradlew build -x test --no-daemon || true
+# Copy source
+COPY src ./src
 
-# Copy source and build
-COPY src src
-RUN ./gradlew bootJar -x test --no-daemon
+# Build application
+RUN gradle bootJar -x test --no-daemon
 
-# Stage 2: Runtime
+
+# ============================================================
+# Stage 2 — Runtime
+# ============================================================
 FROM eclipse-temurin:21-jre
+
 WORKDIR /app
 
-# Copy the built jar from stage 1
+# Run as non-root user
+RUN useradd \
+    --system \
+    --create-home \
+    --shell /usr/sbin/nologin \
+    swachhbot
+
 COPY --from=build /app/build/libs/*.jar app.jar
 
-# Expose app port
+RUN chown swachhbot:swachhbot app.jar
+
+USER swachhbot
+
 EXPOSE 8080
 
-# Run with container-specific overrides
-ENTRYPOINT ["java", "-jar", "app.jar", "--spring.datasource.url=jdbc:postgresql://postgres:5432/swachhbot"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

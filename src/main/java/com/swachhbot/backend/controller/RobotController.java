@@ -32,6 +32,7 @@ public class RobotController {
                 request.velocity(),
                 request.battery(),
                 request.status(),
+                request.isColliding(),
                 request.updatedAt()
         );
         return robotStateService.update(normalized);

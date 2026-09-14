@@ -108,8 +108,8 @@ public class SimulationRobot implements Robot {
 
     @Override
     public MotionState getMotionState() {
-        RobotState s = getState();
-        return new MotionState(s.velocity(), 0, 0, false);
+        RobotStateDto dto = stateService.get(robotId);
+        return new MotionState(dto.velocity(), 0, 0, dto.isColliding());
     }
 
     @Override

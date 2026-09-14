@@ -12,9 +12,9 @@ import java.time.Duration;
  */
 public class MotionController {
     private static final double REACHED_THRESHOLD = 10.0; // mm
-    private static final double ROTATION_THRESHOLD = 5.0; // degrees
+    private static final double ROTATION_THRESHOLD = 3.0; // degrees
     private static final double LINEAR_SPEED = 200.0;     // mm/s
-    private static final double ANGULAR_SPEED = 45.0;    // deg/s
+    private static final double ANGULAR_SPEED = 90.0;    // deg/s
 
     public MotionCommand nextCommand(RobotState currentState, Path path) {
         if (path.isEmpty()) return new MotionCommand(0, 0, Duration.ZERO);
@@ -47,8 +47,8 @@ public class MotionController {
             double direction = Math.signum(angleDiff);
             return new MotionCommand(0, direction * ANGULAR_SPEED, Duration.ofMillis(100));
         } else {
-            // Move forward
-            return new MotionCommand(LINEAR_SPEED, 0, Duration.ofMillis(100));
+            // Move forward and smoothly correct angle
+            return new MotionCommand(LINEAR_SPEED, angleDiff * 2.0, Duration.ofMillis(100));
         }
     }
 }

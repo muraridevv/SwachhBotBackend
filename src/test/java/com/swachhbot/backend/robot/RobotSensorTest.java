@@ -38,7 +38,7 @@ public class RobotSensorTest {
     @Test
     void shouldProvideBatterySensorReadings() {
         when(stateService.get(anyString())).thenReturn(new RobotStateDto(
-            "swachhbot-01", null, 100.0, 100.0, 0.0, 0.0, 85.0, null, Instant.now()
+            "swachhbot-01", null, 100.0, 100.0, 0.0, 0.0, 85.0, null, false, Instant.now()
         ));
         
         SensorReading<BatteryState> reading = robot.getBatterySensor().read();
@@ -49,7 +49,7 @@ public class RobotSensorTest {
     @Test
     void shouldProvideImuReadings() {
         when(stateService.get(anyString())).thenReturn(new RobotStateDto(
-            "swachhbot-01", null, 100.0, 100.0, 180.0, 0.0, 100.0, null, Instant.now()
+            "swachhbot-01", null, 100.0, 100.0, 180.0, 0.0, 100.0, null, false, Instant.now()
         ));
 
         var reading = robot.getImu().read();

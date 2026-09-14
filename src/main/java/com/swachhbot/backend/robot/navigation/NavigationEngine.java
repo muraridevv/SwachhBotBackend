@@ -39,6 +39,9 @@ public class NavigationEngine {
     private final Queue<RobotPosition> goalQueue = new ConcurrentLinkedQueue<>();
     private final AtomicReference<RobotPosition> currentGoal = new AtomicReference<>();
     private final AtomicReference<List<RobotPosition>> currentPath = new AtomicReference<>();
+    
+    private RobotPosition lastPosition = null;
+    private int stuckCounter = 0;
 
     public void setGoal(RobotPosition goal) {
         log.info("Setting navigation goal: {}", goal);
@@ -74,6 +77,7 @@ public class NavigationEngine {
         goalQueue.clear();
         currentGoal.set(null);
         currentPath.set(null);
+        stuckCounter = 0;
         robot.stop();
     }
 
@@ -105,6 +109,26 @@ public class NavigationEngine {
                 state.robotId(), state.houseId(), currentPos, currentOrientation, 
                 state.velocity(), state.battery(), state.status(), state.timestamp()
         );
+
+        // Stuck detection
+        if (lastPosition != null) {
+            double dx = currentPos.x() - lastPosition.x();
+            double dy = currentPos.y() - lastPosition.y();
+            if (Math.sqrt(dx * dx + dy * dy) < 5.0) {
+                stuckCounter++;
+            } else {
+                stuckCounter = 0;
+            }
+        }
+        lastPosition = currentPos;
+
+        if (stuckCounter > 20) {
+            log.warn("Robot appears stuck! Stopping and replanning.");
+            robot.stop();
+            stuckCounter = 0;
+            replanningRequired();
+            return;
+        }
 
         // 1. Path Planning (or replanning if path is invalid/blocked)
         List<RobotPosition> path = currentPath.get();

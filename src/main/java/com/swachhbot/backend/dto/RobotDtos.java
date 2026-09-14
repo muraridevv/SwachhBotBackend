@@ -25,6 +25,7 @@ public final class RobotDtos {
             double velocity,
             double battery,
             RobotStatus status,
+            boolean isColliding,
             Instant updatedAt
     ) {
     }
@@ -39,6 +40,7 @@ public final class RobotDtos {
             double velocity,
             double battery,
             RobotStatus status,
+            boolean isColliding,
             Double cleaningPercent,
             Instant timestamp
     ) {
