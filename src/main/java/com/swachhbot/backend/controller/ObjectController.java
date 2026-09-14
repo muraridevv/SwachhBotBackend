@@ -1,9 +1,8 @@
 package com.swachhbot.backend.controller;
 
-import com.swachhbot.backend.domain.vision.EnvironmentChange;
+import com.swachhbot.backend.dto.ObjectDtos.EnvironmentChangeDto;
 import com.swachhbot.backend.dto.ObjectDtos.ObjectDto;
 import com.swachhbot.backend.dto.ObjectDtos.ObjectUpsertRequest;
-import com.swachhbot.backend.repository.EnvironmentChangeRepository;
 import com.swachhbot.backend.service.ObjectService;
 import com.swachhbot.backend.service.vision.EnvironmentAnalysisService;
 import jakarta.validation.Valid;
@@ -21,7 +20,6 @@ import java.util.UUID;
 public class ObjectController {
 
     private final ObjectService objectService;
-    private final EnvironmentChangeRepository changeRepository;
     private final EnvironmentAnalysisService analysisService;
 
     @GetMapping
@@ -30,8 +28,8 @@ public class ObjectController {
     }
 
     @GetMapping("/changes")
-    public List<EnvironmentChange> listChanges(@PathVariable UUID houseId) {
-        return changeRepository.findByHouseIdOrderByDetectedAtDesc(houseId);
+    public List<EnvironmentChangeDto> listChanges(@PathVariable UUID houseId) {
+        return objectService.findChangesByHouse(houseId);
     }
 
     @GetMapping("/changes/explain")

@@ -99,10 +99,27 @@ public class CommandService {
         boolean uninitialized = current.houseId() == null && current.x() == 0 && current.y() == 0;
         double x = uninitialized ? 125 : current.x();
         double y = uninitialized ? 125 : current.y();
+        double rotation = current.rotation();
+        if (request.command() == com.swachhbot.backend.domain.enums.CommandType.MOVE) {
+            double linearVelocity = payloadValue(request.payload(), "linear");
+            double angularVelocity = payloadValue(request.payload(), "angular");
+            double seconds = 0.25; // one simulated control tick
+            rotation += angularVelocity * seconds;
+            double radians = Math.toRadians(rotation);
+            x += linearVelocity * seconds * Math.cos(radians);
+            y += linearVelocity * seconds * Math.sin(radians);
+        }
         robotStateService.update(new com.swachhbot.backend.dto.RobotDtos.RobotStateDto(
                 request.robotId(),
                 commandHouse != null ? commandHouse.getId() : current.houseId(),
-                x, y, current.rotation(), 0, current.battery(), status,
+                x, y, rotation, 0, current.battery(), status,
                 false, Instant.now()));
+    }
+
+    private double payloadValue(String payload, String field) {
+        if (payload == null) return 0;
+        var matcher = java.util.regex.Pattern.compile("\\\"" + field + "\\\"\\s*:\\s*(-?\\d+(?:\\.\\d+)?)")
+                .matcher(payload);
+        return matcher.find() ? Double.parseDouble(matcher.group(1)) : 0;
     }
 }

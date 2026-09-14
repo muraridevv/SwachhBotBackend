@@ -48,4 +48,16 @@ public final class ObjectDtos {
             int detectionCount
     ) {
     }
+
+    /** API-safe projection of an environmental change; never exposes lazy entities. */
+    public record EnvironmentChangeDto(
+            UUID id,
+            UUID houseId,
+            UUID objectId,
+            String changeType,
+            String description,
+            double confidence,
+            Instant detectedAt
+    ) {
+    }
 }

@@ -83,8 +83,9 @@ public class CleaningIntelligenceService {
     private RoomPriorityScore calculateScore(Room room, List<LearnedInsightEntity> allInsights, List<ProblemArea> allProblems) {
         // 1. Dirt Score: Based on evidence count of DIRTY_AREA insights in this room
         double dirtVal = allInsights.stream()
-                .filter(i -> RoomLocator.roomAt(List.of(room), 
-                    extractX(i.getSubjectKey()), extractY(i.getSubjectKey())).isPresent())
+                // DirtyAreaAnalyzer stores room-level insight keys as
+                // "ROOM:<UPPERCASE_ROOM_NAME>", not x:y coordinates.
+                .filter(i -> ("ROOM:" + room.getName()).equalsIgnoreCase(i.getSubjectKey()))
                 .mapToDouble(LearnedInsightEntity::getEvidenceCount)
                 .sum();
         double normalizedDirt = Math.min(dirtVal / 10.0, 1.0) * props.getBaseScore();
@@ -150,15 +151,4 @@ public class CleaningIntelligenceService {
         }
     }
 
-    private double extractX(String subjectKey) {
-        try {
-            return Double.parseDouble(subjectKey.split(":")[1]);
-        } catch (Exception e) { return 0; }
-    }
-
-    private double extractY(String subjectKey) {
-        try {
-            return Double.parseDouble(subjectKey.split(":")[2]);
-        } catch (Exception e) { return 0; }
-    }
 }
