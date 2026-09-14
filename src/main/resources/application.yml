@@ -6,10 +6,9 @@ spring:
     name: swachhbot-backend
 
   datasource:
-    # Docker Compose exposes the pgvector-enabled database on host port 5433.
-    # Port 5432 commonly points to a regular PostgreSQL installation, which
-    # cannot execute the `CREATE EXTENSION vector` statement used by Spring AI.
-    url: ${DB_URL:jdbc:postgresql://localhost:5433/swachhbot}
+    # Local PostgreSQL installations (including Windows) use the standard port.
+    # Docker Compose overrides this with its container address and port.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/swachhbot}
     username: ${DB_USER:swachhbot}
     password: ${DB_PASSWORD:swachhbot}
     driver-class-name: org.postgresql.Driver

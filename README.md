@@ -105,18 +105,26 @@ until **Save map edits** is selected.
 ```bash
 ./gradlew bootRun
 ```
-Requires a local Postgres with `pgvector` on port 5433.
+Requires a local Postgres with `pgvector` on port 5432. The bundled Docker
+database is published on port 5433, so use
+`DB_URL=jdbc:postgresql://localhost:5433/swachhbot` when connecting to it from
+a locally run backend.
 
-> **`CREATE EXTENSION vector` startup error:** This means the application has
-> connected to a PostgreSQL server without the pgvector extension installed.
-> Start the bundled database with `docker compose up -d postgres` (it is
-> published on port `5433`), then run the application. If you use a different
-> PostgreSQL server, install pgvector there and set `DB_URL` to that server's
-> JDBC URL. You can verify the extension with:
+> **Windows PostgreSQL / `CREATE EXTENSION vector` startup error:** pgvector
+> must be enabled in the specific `swachhbot` database, not merely installed in
+> the PostgreSQL server directory. Run the following once from `psql` using a
+> PostgreSQL superuser (for example, `postgres`) against that database, then
+> start the backend as the `swachhbot` user:
 >
 > ```bash
-> docker compose exec postgres psql -U swachhbot -d swachhbot -c "CREATE EXTENSION IF NOT EXISTS vector;"
+> psql -U postgres -d swachhbot -c "CREATE EXTENSION IF NOT EXISTS vector;"
+> psql -U postgres -d swachhbot -c "\\dx vector"
 > ```
+>
+> If the first command says that extension `vector` is not available, pgvector
+> was installed for a different PostgreSQL version or is not in that server's
+> `share\\extension` directory; reinstall the matching pgvector build and restart
+> PostgreSQL before retrying.
 
 
 ---
